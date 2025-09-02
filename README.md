@@ -1,100 +1,116 @@
 # MS RAG Demo
 
-A simple RAG (Retrieval-Augmented Generation) system built with Next.js, featuring document upload and AI-powered chat functionality.
+Un sistema **Retrieval-Augmented Generation (RAG)** sviluppato con **Next.js**, che unisce caricamento documenti e chat AI interattiva.
 
-## Features
+---
 
-- **User Authentication**: Email/password and GitHub OAuth support
-- **Document Upload**: Support for PDF and text files
-- **Document Processing**: Automatic text extraction and chunking with embeddings
-- **AI Chat**: OpenAI-powered chat with RAG capabilities
-- **Modern UI**: Built with shadcn/ui components and Tailwind CSS
+## ✨ Funzionalità
 
-## Tech Stack
+- 🔐 **Autenticazione utenti**: supporto email/password e OAuth con GitHub  
+- 📂 **Caricamento documenti**: compatibile con file PDF e TXT  
+- ⚙️ **Elaborazione documenti**: estrazione testo, suddivisione in chunk ed embedding automatici  
+- 🤖 **Chat AI**: conversazione basata su RAG con modelli OpenAI  
+- 🎨 **Interfaccia moderna**: costruita con **shadcn/ui** e **Tailwind CSS**  
 
-- **Frontend**: Next.js 15, React 19, TypeScript
-- **UI**: shadcn/ui, Tailwind CSS, Lucide React
-- **Authentication**: Better Auth
-- **Database**: PostgreSQL with Prisma ORM, pgvector for embeddings
-- **Storage**: Supabase Storage
-- **AI**: OpenAI API (GPT-4o-mini + text-embedding-3-small)
+---
 
-## Setup
+## 🛠️ Stack Tecnologico
 
-1. **Clone the repository**
+- **Frontend**: Next.js 15, React 19, TypeScript  
+- **UI**: shadcn/ui, Tailwind CSS, Lucide React  
+- **Autenticazione**: Better Auth  
+- **Database**: PostgreSQL + Prisma ORM, estensione pgvector  
+- **Storage**: Supabase Storage  
+- **AI**: OpenAI API (GPT-4o-mini + text-embedding-3-small)  
+
+---
+
+## 🚀 Setup Locale
+
+1. **Clona il repository**
    ```bash
    git clone <repository-url>
    cd ms-rag-demo
-   ```
+   ````
 
-2. **Install dependencies**
+2. **Installa le dipendenze**
+
    ```bash
    npm install
    ```
 
-3. **Environment Variables**
-   Copy `.env.example` to `.env.local` and fill in the required values:
+3. **Configura le variabili d’ambiente**
+   Copia il file di esempio:
+
    ```bash
    cp .env.example .env.local
    ```
 
-   Required variables:
-   - `DATABASE_URL`: PostgreSQL database URL with pgvector extension
-   - `NEXT_PUBLIC_SUPABASE_URL`: Supabase project URL
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Supabase anonymous key
-   - `SUPABASE_SERVICE_ROLE_KEY`: Supabase service role key
-   - `OPENAI_KEY`: OpenAI API key
-   - `BETTER_AUTH_SECRET`: Random 32-character string for session encryption
-   - `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: GitHub OAuth credentials (optional)
+   Valori richiesti:
 
-4. **Database Setup**
+   * `DATABASE_URL`: URL PostgreSQL con estensione pgvector
+   * `NEXT_PUBLIC_SUPABASE_URL`: URL del progetto Supabase
+   * `NEXT_PUBLIC_SUPABASE_ANON_KEY`: chiave anonima Supabase
+   * `SUPABASE_SERVICE_ROLE_KEY`: chiave di ruolo Supabase
+   * `OPENAI_KEY`: chiave API OpenAI
+   * `BETTER_AUTH_SECRET`: stringa casuale di 32 caratteri per cifratura sessioni
+   * `GITHUB_CLIENT_ID` & `GITHUB_CLIENT_SECRET`: credenziali GitHub OAuth (opzionale)
+
+4. **Inizializza il database**
+
    ```bash
-   # Generate Prisma client
-   npm run db:generate
-   
-   # Push database schema (for development)
-   npm run db:push
+   npm run db:generate   # genera il client Prisma
+   npm run db:push       # applica lo schema in sviluppo
    ```
 
-5. **Run the application**
+5. **Avvia l’applicazione**
+
    ```bash
    npm run dev
    ```
 
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+   ➡️ Apri [http://localhost:3000](http://localhost:3000) nel browser
 
-## Usage
+---
 
-1. **Sign Up/Sign In**: Create an account or sign in with existing credentials
-2. **Upload Documents**: Upload PDF or text files for processing
-3. **Chat**: Ask questions about your documents or have general conversations
-4. **Document Selection**: Switch between document-specific and general chat modes
+## 📖 Utilizzo
 
-## Deployment
+1. 🔑 **Accedi/Registrati**: crea un account o usa GitHub OAuth
+2. 📄 **Carica documenti**: PDF o testo semplice
+3. 💬 **Chatta con l’AI**: poni domande sui documenti o in modalità libera
+4. 🔍 **Seleziona documenti**: passa da chat contestuale a generale
+
+---
+
+## 🌐 Deployment
 
 ### Vercel
 
-1. **Connect your repository** to Vercel
-2. **Set environment variables** in Vercel dashboard
-3. **Deploy**: Vercel will automatically build and deploy your application
+1. Collega il repository a **Vercel**
+2. Configura le variabili d’ambiente dal dashboard
+3. Deploy automatico al push
 
-### Database Requirements
+### Requisiti Database
 
-- PostgreSQL database with `pgvector` extension enabled
-- Supabase is recommended for easy setup with storage integration
+* PostgreSQL con estensione **pgvector**
+* Consigliato **Supabase** per semplicità e storage integrato
 
-### Storage Requirements
+### Requisiti Storage
 
-- Supabase Storage bucket named `documents` for file uploads
-- Proper CORS and access policies configured
+* Bucket Supabase chiamato `documents` per gli upload
+* Configurazione CORS e policy di accesso
 
-## API Endpoints
+---
 
-- `POST /api/auth/*` - Authentication endpoints (Better Auth)
-- `GET /api/documents` - List user documents
-- `POST /api/documents` - Upload document
-- `POST /api/chat` - Send chat message
+## 🔌 API Endpoints
 
-## License
+* `POST /api/auth/*` → autenticazione (Better Auth)
+* `GET /api/documents` → elenco documenti utente
+* `POST /api/documents` → upload documento
+* `POST /api/chat` → invio messaggio chat
 
-MIT License
+---
+
+## 📄 Licenza
+
+Distribuito sotto licenza **MIT**.
