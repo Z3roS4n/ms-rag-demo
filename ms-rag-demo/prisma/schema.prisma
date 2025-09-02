@@ -1,0 +1,282 @@
+generator client {
+  provider        = "prisma-client"
+  // enable the postgres extensions workflow in case your Prisma version
+  // requires the feature flag; remove if not necessary on your runtime.
+  previewFeatures = ["postgresqlExtensions"]
+  output   = "../src/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+  // enable the pgvector extension on new instances; map/schema args are
+  // convenient for Supabase. If you manage extensions separately, remove
+  // this line and ensure the "vector" extension is installed on the DB.
+  extensions = [pgvector(map: "vector", schema: "extensions")]
+}
+
+model User {
+  id           String    @id @default(uuid())
+  name         String?
+  email        String?   @unique
+  emailVerified Boolean  @default(false)
+  image        String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  documents    Document[]
+  sessions     Session[]
+  accounts     Account[]
+  notes        Note[]
+  flashcards   Flashcard[]
+  quizzes      Quiz[]
+  chatSessions ChatSession[] @relation("owner_sessions")
+  chatMessages ChatMessage[]
+  chatChunks   ChatChunk[]
+  collaborators DocumentCollaborator[]
+  activityLogs ActivityLog[]
+
+  @@map("user")
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  token      String   @unique
+  expiresAt  DateTime
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("session")
+}
+
+model Account {
+  id                         String   @id @default(uuid())
+  userId                     String
+  user                       User     @relation(fields: [userId], references: [id])
+  accountId                  String
+  providerId                 String
+  accessToken                String?
+  refreshToken               String?
+  accessTokenExpiresAt       DateTime?
+  refreshTokenExpiresAt      DateTime?
+  scope                      String?
+  idToken                    String?
+  password                   String?
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("verification")
+}
+
+model Document {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  title       String
+  description String?
+  fileUrl     String    @map("file_url")
+  status      String    @default("uploaded")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  versions    DocumentVersion[]
+  chunks      DocumentChunk[]
+  indexes     DocumentIndex[]
+  chatMessages ChatMessage[]
+  chatChunks  ChatChunk[]
+  notes       Note[]
+  flashcards  Flashcard[]
+  quizzes     Quiz[]
+  collaborators DocumentCollaborator[]
+  activityLogs ActivityLog[]
+  sessions    ChatSession[]
+
+  @@map("documents")
+}
+
+model DocumentVersion {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  versionNumber Int
+  fileUrl     String   @map("file_url")
+  createdAt   DateTime @default(now())
+
+  @@map("document_versions")
+}
+
+model DocumentChunk {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  content    String
+  // store embeddings as a native pgvector column. Dimension set to 1536 —
+  // change to match your model (e.g. OpenAI embeddings). Prisma will emit a
+  // migration that creates a `vector(1536)` column via the extension.
+  embedding  Unsupported("vector(1536)")
+  createdAt  DateTime @default(now())
+
+  @@map("document_chunks")
+  @@index([documentId, createdAt(sort: Desc)], name: "idx_document_chunks_doc_time")
+}
+
+model DocumentIndex {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  title      String?
+  indexText  String
+  indexJson  Json?
+  // AI-generated index embedding stored as pgvector
+  embedding  Unsupported("vector(1536)")
+  generatedBy String?
+  generatedAt DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("document_indexes")
+  @@index([documentId], name: "idx_document_indexes_doc")
+}
+
+model Note {
+  id          String   @id @default(uuid())
+  documentId  String
+  document    Document @relation(fields: [documentId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  content     String
+  highlightRange Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("notes")
+}
+
+model Flashcard {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  question   String
+  answer     String
+  createdAt  DateTime @default(now())
+
+  @@map("flashcards")
+}
+
+model Quiz {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  question   String
+  options    String[]
+  correctAnswer String @map("correct_answer")
+  createdAt  DateTime @default(now())
+
+  @@map("quizzes")
+}
+
+model DocumentCollaborator {
+  id         String   @id @default(uuid())
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  role       String
+  invitedAt  DateTime @default(now())
+
+  @@map("document_collaborators")
+}
+
+model ActivityLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+  action     String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@map("activity_logs")
+}
+
+model ChatSession {
+  id         String   @id @default(uuid())
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+  ownerId    String
+  owner      User     @relation("owner_sessions", fields: [ownerId], references: [id])
+  title      String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  messages   ChatMessage[] @relation("session_messages")
+  chatChunks ChatChunk[]   @relation("session_chunks")
+
+  @@map("chat_sessions")
+  @@index([documentId], name: "idx_chat_sessions_document")
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  sessionId  String
+  session    ChatSession @relation("session_messages", fields: [sessionId], references: [id])
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  role       String
+  content    String
+  tokens     Int?
+  meta       Json?
+  replyTo    String?
+  createdAt  DateTime @default(now())
+  editedAt   DateTime?
+  chunks     ChatChunk[] @relation("message_chunks")
+
+  @@map("chat_messages")
+  @@index([sessionId, createdAt(sort: Desc)], name: "idx_chat_messages_session_time")
+  @@index([userId, createdAt(sort: Desc)], name: "idx_chat_messages_user_time")
+}
+
+model ChatChunk {
+  id         String   @id @default(uuid())
+  messageId  String?
+  message    ChatMessage? @relation("message_chunks", fields: [messageId], references: [id])
+  sessionId  String?
+  session    ChatSession?  @relation("session_chunks", fields: [sessionId], references: [id])
+  documentId String?
+  document   Document? @relation(fields: [documentId], references: [id])
+  userId     String?
+  user       User?     @relation(fields: [userId], references: [id])
+  content    String
+  // chat chunk embedding as pgvector
+  embedding  Unsupported("vector(1536)")
+  chunkIndex Int?     @default(0)
+  createdAt  DateTime @default(now())
+
+  @@map("chat_chunks")
+  @@index([sessionId, createdAt(sort: Desc)], name: "idx_chat_chunks_session_time")
+  @@index([documentId, createdAt(sort: Desc)], name: "idx_chat_chunks_document")
+}
+
