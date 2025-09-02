@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client"
+  provider        = "prisma-client-js"
   // enable the postgres extensions workflow in case your Prisma version
   // requires the feature flag; remove if not necessary on your runtime.
   previewFeatures = ["postgresqlExtensions"]
